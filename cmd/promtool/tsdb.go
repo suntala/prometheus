@@ -802,7 +802,8 @@ func formatSeriesSetOpenMetrics(ss storage.SeriesSet) error {
 		series := ss.At()
 		lbs := series.Labels()
 		metricName := lbs.Get(labels.MetricName)
-		lbs = lbs.DropMetricName()
+		// #TODO: figure out whether to replace/drop name here and wherever ReplaceMetricName is used
+		lbs = lbs.ReplaceMetricName()
 		it := series.Iterator(nil)
 		for it.Next() == chunkenc.ValFloat {
 			ts, val := it.At()

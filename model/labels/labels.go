@@ -342,6 +342,17 @@ func (ls Labels) Validate(f func(l Label) error) error {
 	return nil
 }
 
+func (ls Labels) ReplaceMetricName() Labels {
+	for i, l := range ls {
+		if l.Name == MetricName {
+			// tag label name for removal
+			ls[i].Value = "__remove__" + ls[i].Value
+			return ls
+		}
+	}
+	return ls
+}
+
 // DropMetricName returns Labels with "__name__" removed.
 func (ls Labels) DropMetricName() Labels {
 	for i, l := range ls {

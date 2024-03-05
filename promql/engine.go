@@ -1319,6 +1319,29 @@ func (ev *evaluator) evalSubquery(subq *parser.SubqueryExpr) (*parser.MatrixSele
 
 // eval evaluates the given expression as the given AST expression node requires.
 func (ev *evaluator) eval(expr parser.Expr) (parser.Value, annotations.Annotations) {
+	// #TODO figure out if there is a place later in the query evaluation process
+	// where we could do the label name removal
+	result, annos := ev.evalInner(expr)
+
+	// #TODO incomplete, rough prototype for the Matrix case
+	switch r := result.(type) {
+	case String:
+		return r, annos
+	case Scalar:
+		return r, annos
+	case Vector:
+		return r, annos
+	case Matrix:
+		for i, _ := range r {
+			r[i].Metric = r[i].Metric.DropMetricName()
+		}
+		return r, annos
+	}
+
+	panic(fmt.Errorf("unhandled expression of type: %T", expr))
+}
+
+func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Annotations) {
 	// This is the top-level evaluation method.
 	// Thus, we check for timeout/cancellation here.
 	if err := contextDone(ev.ctx, "expression evaluation"); err != nil {
@@ -1484,7 +1507,8 @@ func (ev *evaluator) eval(expr parser.Expr) (parser.Value, annotations.Annotatio
 			// vector functions, the only change needed is to drop the
 			// metric name in the output.
 			if e.Func.Name != "last_over_time" {
-				metric = metric.DropMetricName()
+				// example: where labels were being dropped for count_over_time
+				metric = metric.ReplaceMetricName()
 			}
 			ss := Series{
 				Metric: metric,
@@ -1610,6 +1634,7 @@ func (ev *evaluator) eval(expr parser.Expr) (parser.Value, annotations.Annotatio
 		}
 
 		if mat.ContainsSameLabelset() {
+			// example: where the error was being thrown for count_over_time
 			ev.errorf("vector cannot contain metrics with the same labelset")
 		}
 
@@ -1623,7 +1648,7 @@ func (ev *evaluator) eval(expr parser.Expr) (parser.Value, annotations.Annotatio
 		mat := val.(Matrix)
 		if e.Op == parser.SUB {
 			for i := range mat {
-				mat[i].Metric = mat[i].Metric.DropMetricName()
+				mat[i].Metric = mat[i].Metric.ReplaceMetricName()
 				for j := range mat[i].Floats {
 					mat[i].Floats[j].F = -mat[i].Floats[j].F
 				}
@@ -2395,7 +2420,7 @@ func (ev *evaluator) VectorBinop(op parser.ItemType, lhs, rhs Vector, matching *
 		}
 		metric := resultMetric(ls.Metric, rs.Metric, op, matching, enh)
 		if returnBool {
-			metric = metric.DropMetricName()
+			metric = metric.ReplaceMetricName()
 		}
 		insertedSigs, exists := matchedSigs[sig]
 		if matching.Card == parser.CardOneToOne {
@@ -2419,7 +2444,7 @@ func (ev *evaluator) VectorBinop(op parser.ItemType, lhs, rhs Vector, matching *
 		}
 
 		enh.Out = append(enh.Out, Sample{
-			Metric: metric,
+			Metric: metric.ReplaceMetricName(),
 			F:      floatValue,
 			H:      histogramValue,
 		})
@@ -2517,7 +2542,7 @@ func (ev *evaluator) VectorscalarBinop(op parser.ItemType, lhs Vector, rhs Scala
 			lhsSample.F = float
 			lhsSample.H = histogram
 			if shouldDropMetricName(op) || returnBool {
-				lhsSample.Metric = lhsSample.Metric.DropMetricName()
+				lhsSample.Metric = lhsSample.Metric.ReplaceMetricName()
 			}
 			enh.Out = append(enh.Out, lhsSample)
 		}
