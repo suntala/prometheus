@@ -1338,7 +1338,7 @@ func (ev *evaluator) evalLabelReplace(args parser.Expressions) (parser.Value, an
 		panic(fmt.Errorf("invalid destination label name in label_replace(): %s", dst))
 	}
 
-	val, ws := ev.eval(args[0])
+	val, ws := ev.evalInner(args[0])
 	matrix := val.(Matrix)
 	lb := labels.NewBuilder(labels.EmptyLabels())
 
