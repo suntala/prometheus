@@ -1115,7 +1115,7 @@ func (ev *evaluator) rangeEval(prepSeries func(labels.Labels, *EvalSeriesHelper)
 		// Functions will take string arguments from the expressions, not the values.
 		if e != nil && e.Type() != parser.ValueTypeString {
 			// ev.currentSamples will be updated to the correct value within the ev.eval call.
-			val, ws := ev.eval(e)
+			val, ws := ev.evalInner(e) // #TODO: not sure about this change
 			warnings.Merge(ws)
 			matrixes[i] = val.(Matrix)
 
@@ -1291,7 +1291,7 @@ func (ev *evaluator) evalSubquery(subq *parser.SubqueryExpr) (*parser.MatrixSele
 	samplesStats := ev.samplesStats
 	// Avoid double counting samples when running a subquery, those samples will be counted in later stage.
 	ev.samplesStats = ev.samplesStats.NewChild()
-	val, ws := ev.eval(subq)
+	val, ws := ev.evalInner(subq) // #TODO: not sure about this change
 	// But do incorporate the peak from the subquery
 	samplesStats.UpdatePeakFromSubquery(ev.samplesStats)
 	ev.samplesStats = samplesStats
@@ -1452,7 +1452,7 @@ func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Anno
 		otherInArgs := make([]Vector, len(e.Args))
 		for i, e := range e.Args {
 			if i != matrixArgIndex {
-				val, ws := ev.eval(e)
+				val, ws := ev.evalInner(e)
 				otherArgs[i] = val.(Matrix)
 				otherInArgs[i] = Vector{Sample{}}
 				inArgs[i] = otherInArgs[i]
@@ -1641,10 +1641,10 @@ func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Anno
 		return mat, warnings
 
 	case *parser.ParenExpr:
-		return ev.eval(e.Expr)
+		return ev.evalInner(e.Expr)
 
 	case *parser.UnaryExpr:
-		val, ws := ev.eval(e.Expr)
+		val, ws := ev.evalInner(e.Expr)
 		mat := val.(Matrix)
 		if e.Op == parser.SUB {
 			for i := range mat {
@@ -1806,7 +1806,7 @@ func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Anno
 			setOffsetForAtModifier(newEv.startTimestamp, e.Expr)
 		}
 
-		res, ws := newEv.eval(e.Expr)
+		res, ws := newEv.evalInner(e.Expr)
 		ev.currentSamples = newEv.currentSamples
 		ev.samplesStats.UpdatePeakFromSubquery(newEv.samplesStats)
 		ev.samplesStats.IncrementSamplesAtTimestamp(ev.endTimestamp, newEv.samplesStats.TotalSamples)
@@ -1814,7 +1814,7 @@ func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Anno
 	case *parser.StepInvariantExpr:
 		switch ce := e.Expr.(type) {
 		case *parser.StringLiteral, *parser.NumberLiteral:
-			return ev.eval(ce)
+			return ev.evalInner(ce)
 		}
 
 		newEv := &evaluator{
@@ -1829,7 +1829,7 @@ func (ev *evaluator) evalInner(expr parser.Expr) (parser.Value, annotations.Anno
 			samplesStats:             ev.samplesStats.NewChild(),
 			noStepSubqueryIntervalFn: ev.noStepSubqueryIntervalFn,
 		}
-		res, ws := newEv.eval(e.Expr)
+		res, ws := newEv.evalInner(e.Expr)
 		ev.currentSamples = newEv.currentSamples
 		ev.samplesStats.UpdatePeakFromSubquery(newEv.samplesStats)
 		for ts, step := ev.startTimestamp, -1; ts <= ev.endTimestamp; ts += ev.interval {

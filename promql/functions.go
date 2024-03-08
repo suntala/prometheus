@@ -1388,7 +1388,7 @@ func (ev *evaluator) evalLabelJoin(args parser.Expressions) (parser.Value, annot
 		srcLabels[i-3] = src
 	}
 
-	val, ws := ev.eval(args[0])
+	val, ws := ev.evalInner(args[0])
 	matrix := val.(Matrix)
 	srcVals := make([]string, len(srcLabels))
 	lb := labels.NewBuilder(labels.EmptyLabels())
