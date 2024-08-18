@@ -19,6 +19,7 @@ import {
   ServiceDiscoveryPage,
   StatusPage,
   TargetsPage,
+  TourOfPromPage,
   TSDBStatusPage,
 } from './pages';
 import { Theme, themeLocalStorageKey } from './Theme';
@@ -45,6 +46,7 @@ const App: FC<AppProps> = ({ consolesLink, agentMode, ready }) => {
     '/rules',
     '/targets',
     '/service-discovery',
+    '/tour-of-prom',
   ];
   if (basePath.endsWith('/')) {
     basePath = basePath.slice(0, -1);
@@ -113,6 +115,9 @@ const App: FC<AppProps> = ({ consolesLink, agentMode, ready }) => {
                   </Route>
                   <Route path="/tsdb-status">
                     <TSDBStatusPage />
+                  </Route>
+                  <Route path="/tour-of-prom">
+                    <TourOfPromPage />
                   </Route>
                   <Route path="/targets">
                     <TargetsPage />

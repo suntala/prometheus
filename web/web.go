@@ -71,6 +71,7 @@ var reactRouterPaths = []string{
 	"/status",
 	"/targets",
 	"/starting",
+	"/tour-of-prom",
 }
 
 // Paths that are handled by the React router when the Agent mode is set.
@@ -83,7 +84,7 @@ var reactRouterServerPaths = []string{
 	"/alerts",
 	"/graph",
 	"/rules",
-	"/tsdb-status",
+	"/tsdb-status", //
 }
 
 // withStackTrace logs the stack trace in case the request panics. The function

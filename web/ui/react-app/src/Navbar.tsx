@@ -57,8 +57,11 @@ const Navigation: FC<NavbarProps> = ({ consolesLink, agentMode, animateLogo }) =
               Status
             </DropdownToggle>
             <DropdownMenu>
+              <DropdownItem tag={Link} to="/tour-of-prom">
+                Tour of Prom
+              </DropdownItem>
               <DropdownItem tag={Link} to="/status">
-                Runtime & Build Information
+                Runtime & Build Information Something
               </DropdownItem>
               {!agentMode && (
                 <DropdownItem tag={Link} to="/tsdb-status">
