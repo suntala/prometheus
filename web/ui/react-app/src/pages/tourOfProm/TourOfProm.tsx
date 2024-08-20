@@ -1,4 +1,9 @@
 import React, { FC, useState, useEffect } from 'react';
+import { useFetch } from '../../hooks/useFetch';
+import { API_PATH } from '../../constants/constants';
+import { usePathPrefix } from '../../contexts/PathPrefixContext';
+import { Question } from './Question';
+
 // import { Table } from 'reactstrap';
 
 // import { useFetch } from '../../hooks/useFetch';
@@ -140,24 +145,30 @@ const TourOfProm: FC = () => {
 
 // const ControlledComponent: () => {
 function ControlledComponent() {
-  const [inputValue, setInputValue] = useState(`load 5m
+  // replace string here with test file input
+  const [inputValue] = useState(`load 5m
 	  http_requests{job="api-server", instance="0", group="production"}	0+10x10
 	  http_requests{job="api-server", instance="1", group="production"}	0+20x10`);
+  // const pathPrefix = usePathPrefix();
+  // TODO figure out how to get usePathPrefix to work or change it ==> useFetch<string[]>(`${pathPrefix}/${API_PATH}/
+  // const { response: fetchRes, error: fetchErr } = useFetch<{ question: string }>(
+  //   `http://localhost:9090/${API_PATH}/tour/questions`
+  // );
+  // const { response: fetchRes, error: fetchErr } = useFetch<{ result: string }>(`${pathPrefix}/${API_PATH}/tour/questions`);
   const [inputError, setInputError] = useState('');
   const [inputSuccess, setInputSuccess] = useState('');
   // const apple = "apple";
-  const [data, setData] = useState([]);
 
-  const handleChange = (event: any) => {
-    const value = event.target.value;
-    setInputValue(value);
+  // const handleChange = (event: any) => {
+  //   const value = event.target.value;
+  //   setInputValue(value);
 
-    if (value.length < 5) {
-      setInputError('Input must be at least 5 characters');
-    } else {
-      setInputError('');
-    }
-  };
+  //   if (value.length < 5) {
+  //     setInputError('Input must be at least 5 characters');
+  //   } else {
+  //     setInputError('');
+  //   }
+  // };
 
   function handleSubmit(event: any) {
     event.preventDefault();
@@ -179,23 +190,9 @@ function ControlledComponent() {
     }
   }
 
-  useEffect(() => {
-    // Fetch data from the backend
-    fetch('/api/data')
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data);
-      });
-  }, []);
-
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Input Value:
-        <textarea rows={15} cols={110} onChange={handleChange}>
-          {inputValue}
-        </textarea>
-      </label>
+      <Question></Question>
       {inputError && <div style={{ color: 'red' }}>{inputError}</div>}
       {inputSuccess && <div style={{ color: 'green' }}>{inputSuccess}</div>}
       <button type="submit">Submit</button>

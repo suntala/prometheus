@@ -356,6 +356,8 @@ func (api *API) Register(r *route.Router) {
 
 	r.Options("/*path", wrap(api.options))
 
+	r.Get("/tour/questions", wrapAgent(api.questions))
+
 	r.Get("/query", wrapAgent(api.query))
 	r.Post("/query", wrapAgent(api.query))
 	r.Get("/query_range", wrapAgent(api.queryRange))
@@ -418,6 +420,32 @@ func invalidParamError(err error, parameter string) apiFuncResult {
 
 func (api *API) options(*http.Request) apiFuncResult {
 	return apiFuncResult{nil, nil, nil, nil}
+}
+
+type QuestionData struct {
+	Qestion string `json:"question"`
+}
+
+func (api *API) questions(r *http.Request) (result apiFuncResult) {
+	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
+	// "promql/promqltest/testdata/functions.test"
+
+	// dat, err := os.ReadFile("../../../promql/promqltest/testdata/functions.test")
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(pwd)
+	dat, err := os.ReadFile("./promql/promqltest/testdata/functions.test")
+	// dat, err := os.ReadFile("./functions2.test")
+	// /Users/arati/code/prometheus/web/api/v1/functions2.test
+	if err != nil {
+		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}
+	}
+
+	// return apiFuncResult{string(dat)[:100], nil, nil, nil}
+	return apiFuncResult{&QuestionData{string((dat)[:200])}, nil, nil, nil}
 }
 
 func (api *API) query(r *http.Request) (result apiFuncResult) {
