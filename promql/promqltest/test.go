@@ -110,9 +110,20 @@ func RunBuiltinTests(t TBRun, engine promql.QueryEngine) {
 	}
 }
 
+type PromTourTest struct{}
+
+func (PromTourTest) Errorf(format string, args ...interface{}) {}
+func (PromTourTest) FailNow()                                  {}
+
 // RunTest parses and runs the test against the provided engine.
 func RunTest(t testutil.T, input string, engine promql.QueryEngine) {
 	require.NoError(t, runTest(t, input, engine))
+}
+
+func RunPromTour(t testutil.T, input string, engine promql.QueryEngine) error {
+	// require.NoError(t, runTest(t, input, engine))
+
+	return runTest(t, input, engine)
 }
 
 func runTest(t testutil.T, input string, engine promql.QueryEngine) error {
@@ -380,7 +391,7 @@ func (t *test) parse(input string) error {
 		case c == "clear":
 			cmd = &clearCmd{}
 		case strings.HasPrefix(c, "load"):
-			i, cmd, err = parseLoad(lines, i)
+			i, cmd, err = parseLoad(lines, i) //
 		case strings.HasPrefix(c, "eval"):
 			i, cmd, err = t.parseEval(lines, i)
 		default:

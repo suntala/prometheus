@@ -46,6 +46,7 @@ import (
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/promql/promqltest"
 	"github.com/prometheus/prometheus/rules"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
@@ -469,7 +470,17 @@ func (api *API) answer(r *http.Request) (result apiFuncResult) {
 
 	fmt.Printf("yes body! %+v\n\n", p)
 
-	return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
+	stringp := fmt.Sprint("%+v", p)
+
+	testEngine := promqltest.NewTestEngine(false, 0, promqltest.DefaultMaxSamplesPerQuery)
+
+	err = promqltest.RunPromTour(&promqltest.PromTourTest{}, stringp, testEngine)
+	if err != nil {
+		fmt.Println("err:", err)
+	}
+
+	return apiFuncResult{&QuestionData{stringp}, nil, nil, nil}
+	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
 }
 
 func (api *API) query(r *http.Request) (result apiFuncResult) {

@@ -169,6 +169,10 @@ function ControlledComponent() {
   //   }
   // };
 
+  type FormData = {
+    body: string;
+  };
+
   function handleSubmit(event: any) {
     event.preventDefault();
     // if (inputValue.length >= 5) {
@@ -176,12 +180,21 @@ function ControlledComponent() {
     // setInputSuccess('succeeded!');
     // setInputError('');
     console.log(inputValue);
+
+    const body: FormData = {
+      body: inputValue,
+    };
+
+    const formData = JSON.stringify(body);
+
     fetch(
       // 'http://localhost:9090/api/v1/query?query=sort_by_label%28prometheus_http_request_duration_seconds_count%2C+%22prometheus_http_request_duration_seconds_count%22%29&time=1723652583.255&apple=fruit',
       'http://localhost:9090/api/v1/tour/answer?apple=fruit',
       {
         method: 'POST',
-        body: `{"body": "${inputValue.replace(/\s+/g, '')}"}`,
+        // body: `{"body": "${inputValue.replace(/\s+/g, '').replace(/"/g, 'quotationmark').replace(/\//g, 'forwardslash')}"}`,
+        // body: `${JSON.stringify({ 'body': `${inputValue.replace(/\s+/g, '')}` })}`,
+        body: formData,
         cache: 'no-store',
         credentials: 'same-origin',
         // signal: abortController.signal,
