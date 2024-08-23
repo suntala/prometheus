@@ -15,6 +15,7 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -356,7 +357,8 @@ func (api *API) Register(r *route.Router) {
 
 	r.Options("/*path", wrap(api.options))
 
-	r.Get("/tour/questions", wrapAgent(api.questions))
+	r.Get("/tour/question", wrapAgent(api.question))
+	r.Post("/tour/answer", wrapAgent(api.answer))
 
 	r.Get("/query", wrapAgent(api.query))
 	r.Post("/query", wrapAgent(api.query))
@@ -426,7 +428,11 @@ type QuestionData struct {
 	Qestion string `json:"question"`
 }
 
-func (api *API) questions(r *http.Request) (result apiFuncResult) {
+type AnswerData struct {
+	Answer string `json:"body"`
+}
+
+func (api *API) question(r *http.Request) (result apiFuncResult) {
 	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
 	// "promql/promqltest/testdata/functions.test"
 
@@ -448,7 +454,39 @@ func (api *API) questions(r *http.Request) (result apiFuncResult) {
 	return apiFuncResult{&QuestionData{string((dat)[:200])}, nil, nil, nil}
 }
 
+func (api *API) answer(r *http.Request) (result apiFuncResult) {
+	apple := r.FormValue("apple")
+	if apple != "" {
+		fmt.Println("yes apple!", apple)
+	}
+
+	var p AnswerData
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		fmt.Println("err:", err)
+		return invalidParamError(errors.New("bad body"), "apple")
+	}
+
+	fmt.Printf("yes body! %+v\n\n", p)
+
+	return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
+}
+
 func (api *API) query(r *http.Request) (result apiFuncResult) {
+	// apple := r.FormValue("apple")
+	// if apple != "" {
+	// 	fmt.Println("yes apple!", apple)
+	// }
+
+	// var p AnswerData
+	// err := json.NewDecoder(r.Body).Decode(&p)
+	// if err != nil {
+	// 	fmt.Println("err:", err)
+	// 	return invalidParamError(errors.New("bad body"), "apple")
+	// }
+
+	// fmt.Printf("yes body! %+v\n\n", p)
+
 	ts, err := parseTimeParam(r, "time", api.now())
 	if err != nil {
 		return invalidParamError(err, "time")

@@ -47,7 +47,7 @@ const App: FC<AppProps> = ({ consolesLink, agentMode, ready }) => {
     '/targets',
     '/service-discovery',
     '/tour-of-prom',
-    '/tour/questions',
+    '/tour/question',
   ];
   if (basePath.endsWith('/')) {
     basePath = basePath.slice(0, -1);

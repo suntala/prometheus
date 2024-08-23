@@ -146,17 +146,16 @@ const TourOfProm: FC = () => {
 // const ControlledComponent: () => {
 function ControlledComponent() {
   // replace string here with test file input
-  const [inputValue] = useState(`load 5m
-	  http_requests{job="api-server", instance="0", group="production"}	0+10x10
-	  http_requests{job="api-server", instance="1", group="production"}	0+20x10`);
+  const [inputValue, setInputValue] = useState('');
+  const onQuestionChange = (value: any) => setInputValue(value);
   // const pathPrefix = usePathPrefix();
   // TODO figure out how to get usePathPrefix to work or change it ==> useFetch<string[]>(`${pathPrefix}/${API_PATH}/
   // const { response: fetchRes, error: fetchErr } = useFetch<{ question: string }>(
-  //   `http://localhost:9090/${API_PATH}/tour/questions`
+  //   `http://localhost:9090/${API_PATH}/tour/question`
   // );
-  // const { response: fetchRes, error: fetchErr } = useFetch<{ result: string }>(`${pathPrefix}/${API_PATH}/tour/questions`);
-  const [inputError, setInputError] = useState('');
-  const [inputSuccess, setInputSuccess] = useState('');
+  // const { response: fetchRes, error: fetchErr } = useFetch<{ result: string }>(`${pathPrefix}/${API_PATH}/tour/question`);
+  // const [inputError, setInputError] = useState('');
+  // const [inputSuccess, setInputSuccess] = useState('');
   // const apple = "apple";
 
   // const handleChange = (event: any) => {
@@ -172,29 +171,35 @@ function ControlledComponent() {
 
   function handleSubmit(event: any) {
     event.preventDefault();
-    if (inputValue.length >= 5) {
-      // submit form
-      setInputSuccess('succeeded!');
-      setInputError('');
-      // fetch('https://jsonplaceholder.typicode.com/posts?_limit=10')
-      //   .then((response) => response.json())
-      //   .then((data) => console.log(data));
-      fetch(
-        'http://localhost:9090/api/v1/query?query=sort_by_label%28prometheus_http_request_duration_seconds_count%2C+%22prometheus_http_request_duration_seconds_count%22%29&time=1723652583.255'
-      )
-        .then((response) => response.json())
-        .then((data) => console.log(data));
-    } else {
-      setInputSuccess('');
-      setInputError('Submit error Input must be at least 5 characters');
-    }
+    // if (inputValue.length >= 5) {
+    // submit form
+    // setInputSuccess('succeeded!');
+    // setInputError('');
+    console.log(inputValue);
+    fetch(
+      // 'http://localhost:9090/api/v1/query?query=sort_by_label%28prometheus_http_request_duration_seconds_count%2C+%22prometheus_http_request_duration_seconds_count%22%29&time=1723652583.255&apple=fruit',
+      'http://localhost:9090/api/v1/tour/answer?apple=fruit',
+      {
+        method: 'POST',
+        body: `{"body": "${inputValue.replace(/\s+/g, '')}"}`,
+        cache: 'no-store',
+        credentials: 'same-origin',
+        // signal: abortController.signal,
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+    // } else {
+    //   setInputSuccess('');
+    //   setInputError('Submit error Input must be at least 5 characters');
+    // }
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <Question></Question>
-      {inputError && <div style={{ color: 'red' }}>{inputError}</div>}
-      {inputSuccess && <div style={{ color: 'green' }}>{inputSuccess}</div>}
+      <Question onQuestionChange={onQuestionChange}></Question>
+      {/* {inputError && <div style={{ color: 'red' }}>{inputError}</div>}
+      {inputSuccess && <div style={{ color: 'green' }}>{inputSuccess}</div>} */}
       <button type="submit">Submit</button>
       <p>Input Value: {inputValue}</p>
     </form>
