@@ -147,6 +147,7 @@ const TourOfProm: FC = () => {
 function ControlledComponent() {
   // replace string here with test file input
   const [inputValue, setInputValue] = useState('');
+  const [outputValue, setOutputValue] = useState('');
   const onQuestionChange = (value: any) => setInputValue(value);
   // const pathPrefix = usePathPrefix();
   // TODO figure out how to get usePathPrefix to work or change it ==> useFetch<string[]>(`${pathPrefix}/${API_PATH}/
@@ -201,7 +202,8 @@ function ControlledComponent() {
       }
     )
       .then((response) => response.json())
-      .then((data) => console.log(data));
+      // .then((data) => console.log(data));
+      .then((data) => setOutputValue(data.data.question));
     // } else {
     //   setInputSuccess('');
     //   setInputError('Submit error Input must be at least 5 characters');
@@ -215,6 +217,7 @@ function ControlledComponent() {
       {inputSuccess && <div style={{ color: 'green' }}>{inputSuccess}</div>} */}
       <button type="submit">Submit</button>
       <p>Input Value: {inputValue}</p>
+      <p>Output Value: {outputValue}</p>
     </form>
   );
 }

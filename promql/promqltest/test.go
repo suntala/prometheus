@@ -120,10 +120,46 @@ func RunTest(t testutil.T, input string, engine promql.QueryEngine) {
 	require.NoError(t, runTest(t, input, engine))
 }
 
-func RunPromTour(t testutil.T, input string, engine promql.QueryEngine) error {
+// (promql.Result
+func RunPromTour(t testutil.T, input string, engine promql.QueryEngine) (parser.Value, error) {
 	// require.NoError(t, runTest(t, input, engine))
 
-	return runTest(t, input, engine)
+	// res, err := runTest2(t, input, engine)
+	res, err := runTest2(t, input, engine)
+	return res.res.Value, err
+}
+
+func runTest2(t testutil.T, input string, engine promql.QueryEngine) (*test, error) {
+	test, err := newTest(t, input)
+
+	// Why do this before checking err? newTest() can create the test storage and then return an error,
+	// and we want to make sure to clean that up to avoid leaking goroutines.
+	defer func() {
+		if test == nil {
+			return
+		}
+		if test.storage != nil {
+			test.storage.Close()
+		}
+		if test.cancelCtx != nil {
+			test.cancelCtx()
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, cmd := range test.cmds {
+		if err := test.exec(cmd, engine); err != nil {
+			// TODO(fabxc): aggregate command errors, yield diffs for result
+			// comparison errors.
+			return nil, err
+		}
+	}
+	fmt.Println(test.res)
+
+	return test, nil
 }
 
 func runTest(t testutil.T, input string, engine promql.QueryEngine) error {
@@ -169,6 +205,8 @@ type test struct {
 
 	context   context.Context
 	cancelCtx context.CancelFunc
+
+	res *promql.Result
 }
 
 // newTest returns an initialized empty Test.
@@ -992,12 +1030,20 @@ func (t *test) exec(tc testCommand, engine promql.QueryEngine) error {
 		}
 
 	case *evalCmd:
-		return t.execEval(cmd, engine)
+		// return t.execEval(cmd, engine)
+		res, err := t.execEval2(cmd, engine)
+		t.res = res
+		return err
 
 	default:
 		panic("promql.Test.exec: unknown test command type")
 	}
 	return nil
+}
+
+func (t *test) execEval2(cmd *evalCmd, engine promql.QueryEngine) (*promql.Result, error) {
+	// #TODO handle range also
+	return t.execInstantEval2(cmd, engine)
 }
 
 func (t *test) execEval(cmd *evalCmd, engine promql.QueryEngine) error {
@@ -1040,6 +1086,11 @@ func (t *test) execRangeEval(cmd *evalCmd, engine promql.QueryEngine) error {
 	return nil
 }
 
+func (t *test) execInstantEval2(cmd *evalCmd, engine promql.QueryEngine) (*promql.Result, error) {
+	iq := atModifierTestCase{expr: cmd.expr, evalTime: cmd.start}
+	return t.runInstantQuery2(iq, cmd, engine)
+}
+
 func (t *test) execInstantEval(cmd *evalCmd, engine promql.QueryEngine) error {
 	queries, err := atModifierTestCases(cmd.expr, cmd.start)
 	if err != nil {
@@ -1052,6 +1103,36 @@ func (t *test) execInstantEval(cmd *evalCmd, engine promql.QueryEngine) error {
 		}
 	}
 	return nil
+}
+
+func (t *test) runInstantQuery2(iq atModifierTestCase, cmd *evalCmd, engine promql.QueryEngine) (*promql.Result, error) {
+	q, err := engine.NewInstantQuery(t.context, t.storage, nil, iq.expr, iq.evalTime)
+	if err != nil {
+		return nil, fmt.Errorf("error creating instant query for %q (line %d): %w", cmd.expr, cmd.line, err)
+	}
+	defer q.Close()
+	res := q.Exec(t.context)
+	if res.Err != nil {
+		if cmd.fail {
+			if err := cmd.checkExpectedFailure(res.Err); err != nil {
+				return nil, err
+			}
+
+			return res, nil
+		}
+		return nil, fmt.Errorf("error evaluating query %q (line %d): %w", iq.expr, cmd.line, res.Err)
+	}
+	if res.Err == nil && cmd.fail {
+		return nil, fmt.Errorf("expected error evaluating query %q (line %d) but got none", iq.expr, cmd.line)
+	}
+	countWarnings, _ := res.Warnings.CountWarningsAndInfo()
+	if !cmd.warn && countWarnings > 0 {
+		return nil, fmt.Errorf("unexpected warnings evaluating query %q (line %d): %v", iq.expr, cmd.line, res.Warnings)
+	}
+	if cmd.warn && countWarnings == 0 {
+		return nil, fmt.Errorf("expected warnings evaluating query %q (line %d) but got none", iq.expr, cmd.line)
+	}
+	return res, nil
 }
 
 func (t *test) runInstantQuery(iq atModifierTestCase, cmd *evalCmd, engine promql.QueryEngine) error {

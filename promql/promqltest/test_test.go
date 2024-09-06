@@ -14,6 +14,7 @@
 package promqltest
 
 import (
+	"fmt"
 	"math"
 	"testing"
 	"time"
@@ -24,6 +25,27 @@ import (
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/tsdb/chunkenc"
 )
+
+func TestRunPromTour(t *testing.T) {
+	stringp := `# Testdata for resets() and changes().
+load 5m
+	http_requests{path="/foo"}	1 2 3 0 1 0 0 1 2 0
+	http_requests{path="/bar"}	1 2 3 4 5 1 2 3 4 5
+	http_requests{path="/biz"}	0 0 0 0 0 1 1 1 1 1
+
+# Tests for resets().
+eval instant at 50m resets(http_requests[5m])
+	{path="/foo"} 0
+	{path="/bar"} 0
+	{path="/biz"} 0`
+
+	testEngine := NewTestEngine(false, 0, DefaultMaxSamplesPerQuery)
+
+	res, err := RunPromTour(&PromTourTest{}, stringp, testEngine)
+	fmt.Println(res)
+	require.Nil(t, err)
+	require.NotNil(t, err)
+}
 
 func TestLazyLoader_WithSamplesTill(t *testing.T) {
 	type testCase struct {

@@ -426,7 +426,7 @@ func (api *API) options(*http.Request) apiFuncResult {
 }
 
 type QuestionData struct {
-	Qestion string `json:"question"`
+	Question string `json:"question"`
 }
 
 type AnswerData struct {
@@ -445,42 +445,48 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 	}
 	fmt.Println(pwd)
 	dat, err := os.ReadFile("./promql/promqltest/testdata/functions.test")
+
+	// 	dat2 := `# Testdata for resets() and changes().
+	// load 5m
+	// 	http_requests{path="/foo"}	1 2 3 0 1 0 0 1 2 0
+	// 	http_requests{path="/bar"}	1 2 3 4 5 1 2 3 4 5
+	// 	http_requests{path="/biz"}	0 0 0 0 0 1 1 1 1 1
+
+	// # Tests for resets().
+	// eval instant at 50m resets(http_requests[5m])
+	// 	{path="/foo"} 0
+	// 	{path="/bar"} 0
+	// 	{path="/biz"} 0`
 	// dat, err := os.ReadFile("./functions2.test")
 	// /Users/arati/code/prometheus/web/api/v1/functions2.test
 	if err != nil {
 		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}
 	}
 
-	// return apiFuncResult{string(dat)[:100], nil, nil, nil}
-	return apiFuncResult{&QuestionData{string((dat)[:200])}, nil, nil, nil}
+	// return apiFuncResult{string(dat)[:200], nil, nil, nil}
+	return apiFuncResult{&QuestionData{string(dat)[:200]}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {
-	apple := r.FormValue("apple")
-	if apple != "" {
-		fmt.Println("yes apple!", apple)
-	}
-
-	var p AnswerData
-	err := json.NewDecoder(r.Body).Decode(&p)
+	var request AnswerData
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("err:", err)
 		return invalidParamError(errors.New("bad body"), "apple")
 	}
 
-	fmt.Printf("yes body! %+v\n\n", p)
-
-	stringp := fmt.Sprint("%+v", p)
-
 	testEngine := promqltest.NewTestEngine(false, 0, promqltest.DefaultMaxSamplesPerQuery)
 
-	err = promqltest.RunPromTour(&promqltest.PromTourTest{}, stringp, testEngine)
+	res, err := promqltest.RunPromTour(&promqltest.PromTourTest{}, request.Answer, testEngine)
 	if err != nil {
 		fmt.Println("err:", err)
 	}
 
-	return apiFuncResult{&QuestionData{stringp}, nil, nil, nil}
+	resString := fmt.Sprintf("%+v", res)
+	fmt.Println("resString:", resString)
+
 	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
+	return apiFuncResult{&QuestionData{resString}, nil, nil, nil}
 }
 
 func (api *API) query(r *http.Request) (result apiFuncResult) {
