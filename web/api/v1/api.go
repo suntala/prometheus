@@ -474,7 +474,6 @@ func (api *API) answer(r *http.Request) (result apiFuncResult) {
 	resString := fmt.Sprintf("%+v", res)
 	fmt.Println("resString:", resString)
 
-	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
 	return apiFuncResult{&QuestionData{resString}, nil, nil, nil}
 }
 

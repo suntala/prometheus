@@ -3,6 +3,7 @@ import { useFetch } from '../../hooks/useFetch';
 import { API_PATH } from '../../constants/constants';
 import { usePathPrefix } from '../../contexts/PathPrefixContext';
 import { Question } from './Question';
+import TextWithLineBreaks from './TextWithLineBreaks';
 
 // import { Table } from 'reactstrap';
 
@@ -209,7 +210,7 @@ function ControlledComponent() {
       {inputSuccess && <div style={{ color: 'green' }}>{inputSuccess}</div>} */}
       <button type="submit">Submit</button>
       <p>Input Value: {inputValue}</p>
-      <p>Output Value: {outputValue}</p>
+      <TextWithLineBreaks text={'Output Value: \n' + outputValue} />
     </form>
   );
 }
