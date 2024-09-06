@@ -443,6 +443,41 @@ func (t *test) parse(input string) error {
 	return nil
 }
 
+func PartialParse(input string) []string {
+	lines := strings.Split(input, "\n")
+
+	questions := []string{}
+
+	for i := 0; i < len(lines); i++ {
+		l := lines[i]
+		if len(l) == 0 {
+			continue
+		}
+
+		var question string
+
+		switch c := strings.ToLower(patSpace.Split(l, 2)[0]); {
+		case strings.HasPrefix(c, "load"):
+			question += l
+			for i+1 < len(lines) {
+				i++
+				if len(lines[i]) == 0 {
+					break
+				}
+				question += "\n" + lines[i]
+			}
+
+			questions = append(questions, question)
+		case strings.HasPrefix(c, "eval"):
+			question += l + "\n"
+			questions = append(questions, question)
+			// default:
+			// #TODO improve this, for now just ignore other lines
+		}
+	}
+	return questions
+}
+
 // testCommand is an interface that ensures that only the package internal
 // types can be a valid command for a test.
 type testCommand interface {

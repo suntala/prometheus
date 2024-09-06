@@ -463,8 +463,19 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}
 	}
 
-	// return apiFuncResult{string(dat)[:200], nil, nil, nil}
-	return apiFuncResult{&QuestionData{string(dat)[:200]}, nil, nil, nil}
+	// tt := &promqltest.PromTourTest{}
+	// test, err := promqltest.NewTest(string(dat), tt)
+
+	// parsed, err := tt.Parse(dat)
+
+	p := promqltest.PartialParse(string(dat))
+	if len(p) < 2 {
+		return apiFuncResult{&QuestionData{"mistake!"}, nil, nil, nil}
+	}
+
+	trial := p[0] + "\n\n" + p[1]
+
+	return apiFuncResult{&QuestionData{trial}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {

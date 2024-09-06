@@ -188,21 +188,13 @@ function ControlledComponent() {
 
     const formData = JSON.stringify(body);
 
-    fetch(
-      // 'http://localhost:9090/api/v1/query?query=sort_by_label%28prometheus_http_request_duration_seconds_count%2C+%22prometheus_http_request_duration_seconds_count%22%29&time=1723652583.255&apple=fruit',
-      'http://localhost:9090/api/v1/tour/answer?apple=fruit',
-      {
-        method: 'POST',
-        // body: `{"body": "${inputValue.replace(/\s+/g, '').replace(/"/g, 'quotationmark').replace(/\//g, 'forwardslash')}"}`,
-        // body: `${JSON.stringify({ 'body': `${inputValue.replace(/\s+/g, '')}` })}`,
-        body: formData,
-        cache: 'no-store',
-        credentials: 'same-origin',
-        // signal: abortController.signal,
-      }
-    )
+    fetch('http://localhost:9090/api/v1/tour/answer?apple=fruit', {
+      method: 'POST',
+      body: formData,
+      cache: 'no-store',
+      credentials: 'same-origin',
+    })
       .then((response) => response.json())
-      // .then((data) => console.log(data));
       .then((data) => setOutputValue(data.data.question));
     // } else {
     //   setInputSuccess('');
@@ -222,13 +214,6 @@ function ControlledComponent() {
   );
 }
 
-// {/* <p>
-// Input Value: {inputValue}
-// {/* {data} */}
-// </p>
-// </form> */}
-
-// export default TSDB2Status;
 export default TourOfProm;
 
 // load 5m
