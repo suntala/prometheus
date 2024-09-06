@@ -453,7 +453,11 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 
 	trial := rand.Intn(len(p))
 
-	return apiFuncResult{&QuestionData{p[trial]}, nil, nil, nil}
+	question := p[trial]
+
+	// f := promqltest.GetPromqlFunctionName(question)
+
+	return apiFuncResult{&QuestionData{question}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {

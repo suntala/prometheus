@@ -443,11 +443,16 @@ func (t *test) parse(input string) error {
 	return nil
 }
 
+// func GetPromqlFunctionName(input string) string {
+// 	return input
+// }
+
 func PartialParse(input string) []string {
 	lines := strings.Split(input, "\n")
 
 	questions := []string{}
 	var loadCmd string
+	var functionBeingTested string
 
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
@@ -458,6 +463,19 @@ func PartialParse(input string) []string {
 		var question string
 
 		switch c := strings.ToLower(patSpace.Split(l, 2)[0]); {
+		case strings.HasPrefix(c, "#"):
+			pat := regexp.MustCompile(`^\s*#\s+Tests for\s+([a-zA-Z0-9_]*).*$`)
+
+			parts := pat.FindStringSubmatch(l)
+
+			if len(parts) < 2 {
+				functionBeingTested = "no function found"
+				continue
+			}
+
+			functionBeingTested = parts[1]
+
+			// "Tests for "
 		case strings.HasPrefix(c, "load"):
 			loadCmd = l
 			for i+1 < len(lines) {
@@ -468,7 +486,7 @@ func PartialParse(input string) []string {
 				loadCmd += "\n" + lines[i]
 			}
 		case strings.HasPrefix(c, "eval"):
-			question += loadCmd + "\n\n" + l
+			question += "#" + functionBeingTested + "\n\n" + loadCmd + "\n\n" + l
 			questions = append(questions, question)
 			// default:
 			// #TODO improve this, for now just ignore other lines
