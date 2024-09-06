@@ -447,6 +447,7 @@ func PartialParse(input string) []string {
 	lines := strings.Split(input, "\n")
 
 	questions := []string{}
+	var loadCmd string
 
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
@@ -458,18 +459,16 @@ func PartialParse(input string) []string {
 
 		switch c := strings.ToLower(patSpace.Split(l, 2)[0]); {
 		case strings.HasPrefix(c, "load"):
-			question += l
+			loadCmd = l
 			for i+1 < len(lines) {
 				i++
 				if len(lines[i]) == 0 {
 					break
 				}
-				question += "\n" + lines[i]
+				loadCmd += "\n" + lines[i]
 			}
-
-			questions = append(questions, question)
 		case strings.HasPrefix(c, "eval"):
-			question += l + "\n"
+			question += loadCmd + "\n\n" + l
 			questions = append(questions, question)
 			// default:
 			// #TODO improve this, for now just ignore other lines

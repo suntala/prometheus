@@ -47,6 +47,25 @@ eval instant at 50m resets(http_requests[5m])
 	require.NotNil(t, err)
 }
 
+func TestPromTourPartialParse(t *testing.T) {
+	stringp := `# Testdata for resets() and changes().
+load 5m
+	http_requests{path="/foo"}	1 2 3 0 1 0 0 1 2 0
+	http_requests{path="/bar"}	1 2 3 4 5 1 2 3 4 5
+	http_requests{path="/biz"}	0 0 0 0 0 1 1 1 1 1
+
+# Tests for resets().
+eval instant at 50m resets(http_requests[5m])
+	{path="/foo"} 0
+	{path="/bar"} 0
+	{path="/biz"} 0`
+
+	p := PartialParse(stringp)
+
+	require.Equal(t, 30, len(p)) // random number to expect for the length of p
+
+}
+
 func TestLazyLoader_WithSamplesTill(t *testing.T) {
 	type testCase struct {
 		ts             time.Time

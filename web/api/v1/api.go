@@ -434,10 +434,6 @@ type AnswerData struct {
 }
 
 func (api *API) question(r *http.Request) (result apiFuncResult) {
-	// return apiFuncResult{&QuestionData{"hello"}, nil, nil, nil}
-	// "promql/promqltest/testdata/functions.test"
-
-	// dat, err := os.ReadFile("../../../promql/promqltest/testdata/functions.test")
 	pwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -446,36 +442,18 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 	fmt.Println(pwd)
 	dat, err := os.ReadFile("./promql/promqltest/testdata/functions.test")
 
-	// 	dat2 := `# Testdata for resets() and changes().
-	// load 5m
-	// 	http_requests{path="/foo"}	1 2 3 0 1 0 0 1 2 0
-	// 	http_requests{path="/bar"}	1 2 3 4 5 1 2 3 4 5
-	// 	http_requests{path="/biz"}	0 0 0 0 0 1 1 1 1 1
-
-	// # Tests for resets().
-	// eval instant at 50m resets(http_requests[5m])
-	// 	{path="/foo"} 0
-	// 	{path="/bar"} 0
-	// 	{path="/biz"} 0`
-	// dat, err := os.ReadFile("./functions2.test")
-	// /Users/arati/code/prometheus/web/api/v1/functions2.test
 	if err != nil {
 		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}
 	}
 
-	// tt := &promqltest.PromTourTest{}
-	// test, err := promqltest.NewTest(string(dat), tt)
-
-	// parsed, err := tt.Parse(dat)
-
 	p := promqltest.PartialParse(string(dat))
-	if len(p) < 2 {
+	if len(p) == 0 {
 		return apiFuncResult{&QuestionData{"mistake!"}, nil, nil, nil}
 	}
 
-	trial := p[0] + "\n\n" + p[1]
+	trial := rand.Intn(len(p))
 
-	return apiFuncResult{&QuestionData{trial}, nil, nil, nil}
+	return apiFuncResult{&QuestionData{p[trial]}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {
@@ -501,20 +479,6 @@ func (api *API) answer(r *http.Request) (result apiFuncResult) {
 }
 
 func (api *API) query(r *http.Request) (result apiFuncResult) {
-	// apple := r.FormValue("apple")
-	// if apple != "" {
-	// 	fmt.Println("yes apple!", apple)
-	// }
-
-	// var p AnswerData
-	// err := json.NewDecoder(r.Body).Decode(&p)
-	// if err != nil {
-	// 	fmt.Println("err:", err)
-	// 	return invalidParamError(errors.New("bad body"), "apple")
-	// }
-
-	// fmt.Printf("yes body! %+v\n\n", p)
-
 	ts, err := parseTimeParam(r, "time", api.now())
 	if err != nil {
 		return invalidParamError(err, "time")
