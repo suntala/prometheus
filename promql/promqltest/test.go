@@ -452,7 +452,6 @@ func PartialParse(input string) []string {
 
 	questions := []string{}
 	var loadCmd string
-	var functionBeingTested string
 
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
@@ -462,20 +461,8 @@ func PartialParse(input string) []string {
 
 		var question string
 
-		switch c := strings.ToLower(patSpace.Split(l, 2)[0]); {
-		case strings.HasPrefix(c, "#"):
-			pat := regexp.MustCompile(`^\s*#\s+Tests for\s+([a-zA-Z0-9_]*).*$`)
-
-			parts := pat.FindStringSubmatch(l)
-
-			if len(parts) < 2 {
-				functionBeingTested = "no function found"
-				continue
-			}
-
-			functionBeingTested = parts[1]
-
-			// "Tests for "
+		smthg := patSpace.Split(l, 2)
+		switch c := strings.ToLower(smthg[0]); {
 		case strings.HasPrefix(c, "load"):
 			loadCmd = l
 			for i+1 < len(lines) {
@@ -486,7 +473,16 @@ func PartialParse(input string) []string {
 				loadCmd += "\n" + lines[i]
 			}
 		case strings.HasPrefix(c, "eval"):
-			question += "#" + functionBeingTested + "\n\n" + loadCmd + "\n\n" + l
+			pat := regexp.MustCompile(`([a-zA-Z0-9_]+)\s*\(`)
+			parts := pat.FindAllStringSubmatch(l, -1)
+
+			var moreparts []string
+
+			for _, d := range parts {
+				moreparts = append(moreparts, d[1])
+			}
+
+			question += "# " + strings.Join(moreparts, "  |  ") + "\n\n" + loadCmd + "\n\n" + l
 			questions = append(questions, question)
 			// default:
 			// #TODO improve this, for now just ignore other lines
