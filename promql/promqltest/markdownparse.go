@@ -49,23 +49,25 @@ func ParseFunctionDocs() []byte {
 
 func modifyAst(doc ast.Node) ast.Node {
 	children := doc.GetChildren()
-	results := []string{}
-	var result string
+	results := map[string]string{}
+
+	var header string
+	var paragraph string
 
 	for i := 0; i < len(children); i++ {
 		c := children[i]
 
 		if heading, ok := c.(*ast.Heading); ok {
-			if len(result) > 0 {
-				results = append(results, result)
-				result = ""
+			if len(header) > 0 {
+				results[header] = paragraph
+				header, paragraph = "", ""
 			}
 			children := heading.GetChildren()
 			for _, child := range children {
 				if text, ok := child.(*ast.Text); ok {
 					fmt.Printf("heading: %s\n\n", text.Literal)
 					text := string(text.Literal)
-					result += text
+					header += text
 				}
 			}
 		}
@@ -75,13 +77,13 @@ func modifyAst(doc ast.Node) ast.Node {
 				if text, ok := child.(*ast.Text); ok {
 					fmt.Printf("para: %s\n\n", text.Literal)
 					text := string(text.Literal)
-					result += text
+					paragraph += text
 				}
 			}
 		}
 	}
 
-	results = append(results, result)
+	results[header] = paragraph
 
 	fmt.Println(len(results), results)
 
