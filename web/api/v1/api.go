@@ -464,7 +464,7 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 
 	// f := promqltest.GetPromqlFunctionName(question)
 
-	return apiFuncResult{&QuestionData{question}, nil, nil, nil}
+	return apiFuncResult{&QuestionData{"# " + strings.Join(question.Funcs, "  |  ") + "\n\n" + question.Expr}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {

@@ -447,10 +447,23 @@ func (t *test) parse(input string) error {
 // 	return input
 // }
 
-func PartialParse(input string) []string {
+var ffunctions = map[string]string{
+	"abs":              "`abs(v instant-vector)` returns the input vector with all sample values converted to their absolute value.",
+	"absent":           "`absent(v instant-vector)` returns an empty vector if the vector passed to it has any elements (floats or native histograms) and a 1-element vector with the value 1 if the vector passed to it has no elements.",
+	"absent_over_time": "`absent_over_time(v range-vector)` returns an empty vector if the range vector passed to it has any elements (floats or native histograms) and a 1-element vector with the value 1 if the range vector passed to it has no elements.",
+	"ceil":             "`ceil(v instant-vector)` rounds the sample values of all elements in `v` up to the nearest integer value greater than or equal to v.",
+	"changes":          "For each input time series, `changes(v range-vector)` returns the number of times its value has changed within the provided time range as an instant vector.",
+}
+
+type Question struct {
+	Funcs []string
+	Expr  string
+}
+
+func PartialParse(input string) []Question {
 	lines := strings.Split(input, "\n")
 
-	questions := []string{}
+	questions := []Question{}
 	var loadCmd string
 
 	for i := 0; i < len(lines); i++ {
@@ -459,7 +472,7 @@ func PartialParse(input string) []string {
 			continue
 		}
 
-		var question string
+		var question Question
 
 		smthg := patSpace.Split(l, 2)
 		switch c := strings.ToLower(smthg[0]); {
@@ -476,13 +489,10 @@ func PartialParse(input string) []string {
 			pat := regexp.MustCompile(`([a-zA-Z0-9_]+)\s*\(`)
 			parts := pat.FindAllStringSubmatch(l, -1)
 
-			var moreparts []string
-
 			for _, d := range parts {
-				moreparts = append(moreparts, d[1])
+				question.Funcs = append(question.Funcs, d[1])
 			}
-
-			question += "# " + strings.Join(moreparts, "  |  ") + "\n\n" + loadCmd + "\n\n" + l
+			question.Expr = loadCmd + "\n\n" + l
 			questions = append(questions, question)
 			// default:
 			// #TODO improve this, for now just ignore other lines
