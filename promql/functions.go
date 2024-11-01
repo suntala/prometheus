@@ -342,6 +342,7 @@ func calcTrendValue(i int, tf, s0, s1, b float64) float64 {
 // how trends in historical data will affect the current data. A higher trend factor increases the influence.
 // of trends. Algorithm taken from https://en.wikipedia.org/wiki/Exponential_smoothing titled: "Double exponential smoothing".
 func funcHoltWinters(vals []parser.Value, args parser.Expressions, enh *EvalNodeHelper) (Vector, annotations.Annotations) {
+	//
 	samples := vals[0].(Matrix)[0]
 
 	// The smoothing factor argument.
@@ -1573,7 +1574,7 @@ func funcYear(vals []parser.Value, args parser.Expressions, enh *EvalNodeHelper)
 }
 
 // FunctionCalls is a list of all functions supported by PromQL, including their types.
-var FunctionCalls = map[string]FunctionCall{
+var FunctionCalls = map[string]FunctionCall{ //
 	"abs":                funcAbs,
 	"absent":             funcAbsent,
 	"absent_over_time":   funcAbsentOverTime,

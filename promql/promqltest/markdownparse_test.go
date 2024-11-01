@@ -28,6 +28,9 @@ func TestParseFunctionDocs(t *testing.T) {
 
 	b := ParseFunctionDocs()
 	require.NotEmpty(t, b)
+
+	// b := parseFileDirect()
+	// require.NotEmpty(t, b)
 }
 
 // func modifyAst(doc ast.Node) ast.Node {

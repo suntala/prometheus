@@ -439,8 +439,15 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	dat, err := os.ReadFile("./docs/querying/functions.md")
+	if err != nil {
+		fmt.Println("markdown parsing error", err)
+	}
+	fmt.Println(string(dat))
+
 	fmt.Println(pwd)
-	dat, err := os.ReadFile("./promql/promqltest/testdata/functions.test")
+	dat, err = os.ReadFile("./promql/promqltest/testdata/functions.test")
 
 	if err != nil {
 		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}

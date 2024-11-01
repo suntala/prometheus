@@ -2,6 +2,7 @@ package promqltest
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gomarkdown/markdown/ast"
 	"github.com/gomarkdown/markdown/parser"
@@ -43,7 +44,8 @@ import (
 // }
 
 func ParseFunctionDocs() []byte {
-	modifyAstExample()
+	// modifyAstExample()
+	parseFileDirect()
 	return nil
 }
 
@@ -65,7 +67,7 @@ func modifyAst(doc ast.Node) ast.Node {
 			children := heading.GetChildren()
 			for _, child := range children {
 				if text, ok := child.(*ast.Text); ok {
-					fmt.Printf("heading: %s\n\n", text.Literal)
+					// fmt.Printf("heading: %s\n\n", text.Literal)
 					text := string(text.Literal)
 					header += text
 				}
@@ -75,7 +77,7 @@ func modifyAst(doc ast.Node) ast.Node {
 			children := para.GetChildren()
 			for _, child := range children {
 				if text, ok := child.(*ast.Text); ok {
-					fmt.Printf("para: %s\n\n", text.Literal)
+					// fmt.Printf("para: %s\n\n", text.Literal)
 					text := string(text.Literal)
 					paragraph += text
 				}
@@ -85,7 +87,12 @@ func modifyAst(doc ast.Node) ast.Node {
 
 	results[header] = paragraph
 
-	fmt.Println(len(results), results)
+	// fmt.Println(len(results), results)
+
+	for key, val := range results {
+		fmt.Printf("key: %s\n\n", key)
+		fmt.Printf("val: %s\n\n", val)
+	}
 
 	// ast.WalkFunc(doc, func(node ast.Node, entering bool) ast.WalkStatus {
 	// 	if heading, ok := node.(*ast.Heading); ok && entering {
@@ -167,33 +174,45 @@ func modifyAst(doc ast.Node) ast.Node {
 // 		}
 
 // }
-var mds = `## absent_over_time()
+// var mds = `## absent_over_time()
 
-absent_over_time(v range-vector) returns an empty vector if the range vector
-passed to it has any elements (floats or native histograms) and a 1-element
-vector with the value 1 if the range vector passed to it has no elements.
+// absent_over_time(v range-vector) returns an empty vector if the range vector
+// passed to it has any elements (floats or native histograms) and a 1-element
+// vector with the value 1 if the range vector passed to it has no elements.
 
-This is useful for alerting on when no time series exist for a given metric name
-and label combination for a certain amount of time.
+// This is useful for alerting on when no time series exist for a given metric name
+// and label combination for a certain amount of time.
 
-In the first two examples, absent_over_time() tries to be smart about deriving
-labels of the 1-element output vector from the input vector.
+// In the first two examples, absent_over_time() tries to be smart about deriving
+// labels of the 1-element output vector from the input vector.
 
-## abs()
+// ## abs()
 
-abs(v instant-vector) returns the input vector with all sample values converted to
-their absolute value.
+// abs(v instant-vector) returns the input vector with all sample values converted to
+// their absolute value.
 
-## absent()
-value
-`
+// ## absent()
+// value
+// `
+
+// var mds = `## `histogram_count()` and `histogram_sum()`
+
+// _Both functions only act on native histograms`
 
 func modifyAstExample() {
-	md := []byte(mds)
+	// md := []byte(mds)
+
+	// dat, err := os.ReadFile("./docs/querying/functions.md")
+	dat, err := os.ReadFile("../../docs/querying/functions.md")
+	if err != nil {
+		fmt.Println("markdown parsing error", err)
+	}
+	// fmt.Println(string(dat))
 
 	extensions := parser.CommonExtensions
 	p := parser.NewWithExtensions(extensions)
-	doc := p.Parse(md)
+	// doc := p.Parse(md)
+	doc := p.Parse(dat)
 
 	doc = modifyAst(doc)
 
@@ -205,4 +224,13 @@ func modifyAstExample() {
 	// html := markdown.Render(doc, renderer)
 
 	// fmt.Printf("-- Markdown:\n%s\n\n--- HTML:\n%s\n", md, html)
+}
+
+func parseFileDirect() {
+	dat, err := os.ReadFile("../../docs/querying/functions.md")
+	if err != nil {
+		fmt.Println("markdown parsing error", err)
+	}
+
+	fmt.Println(string(dat))
 }

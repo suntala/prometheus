@@ -30,7 +30,7 @@ Each command is executed in the order given in the file.
 
 `load` adds some data to the test environment.
 
-The syntax is as follows:
+The syntax is as follows:   
 
 ```
 load <interval>
@@ -49,16 +49,17 @@ For example:
 load 1m
     my_metric{env="prod"} 5 2+3x2 _ stale {{schema:1 sum:3 count:22 buckets:[5 10 7]}}
 ```
+<!-- 5 2 5 8 _ stale histogram -->
 
 ...will create a single series with labels `my_metric{env="prod"}`, with the following points:
 
 * t=0: value is 5
 * t=1m: value is 2
 * t=2m: value is 5
-* t=3m: value is 7
+* t=3m: value is 8
 * t=4m: no point
 * t=5m: stale marker
-* t=6m: native histogram with schema 1, sum -3, count 22 and bucket counts 5, 10 and 7
+* t=6m: native histogram with schema 1, sum 3, count 22 and bucket counts 5, 10 and 7
 
 Each `load` command is additive - it does not replace any data loaded in a previous `load` command.
 Use `clear` to remove all loaded data.
