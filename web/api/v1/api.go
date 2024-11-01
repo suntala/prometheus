@@ -453,6 +453,9 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 		return apiFuncResult{nil, &apiError{errorBadData, err}, nil, nil}
 	}
 
+	// #TODO we need to cache this response somehow so that we aren't parsing the whole test file
+	// everytime we hit the endpoint
+
 	p := promqltest.PartialParse(string(dat))
 	if len(p) == 0 {
 		return apiFuncResult{&QuestionData{"mistake!"}, nil, nil, nil}
@@ -464,7 +467,9 @@ func (api *API) question(r *http.Request) (result apiFuncResult) {
 
 	// f := promqltest.GetPromqlFunctionName(question)
 
-	return apiFuncResult{&QuestionData{"# " + strings.Join(question.Funcs, "  |  ") + "\n\n" + question.Expr}, nil, nil, nil}
+	doc := "# " + strings.Join(question.Docs, "\n# ")
+
+	return apiFuncResult{&QuestionData{doc + "\n\n" + question.Expr}, nil, nil, nil}
 }
 
 func (api *API) answer(r *http.Request) (result apiFuncResult) {

@@ -12,11 +12,6 @@ const TourOfProm: FC = () => {
   return (
     <div>
       <h2>Tour of Prom</h2>
-      <p>
-        sort &#40; v instant-vector &#41; returns vector elements sorted by their sample values, in ascending order. Native
-        histograms are sorted by their sum of observations. Please note that sort only affects the results of instant
-        queries, as range query results always have a fixed output ordering.
-      </p>
       {/* <textarea>load 5m job="api-server", instance="0", group="production"&#125; 0+10x10</textarea> */}
 
       <ControlledComponent />

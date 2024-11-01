@@ -458,6 +458,7 @@ var ffunctions = map[string]string{
 type Question struct {
 	Funcs []string
 	Expr  string
+	Docs  []string
 }
 
 func PartialParse(input string) []Question {
@@ -490,7 +491,13 @@ func PartialParse(input string) []Question {
 			parts := pat.FindAllStringSubmatch(l, -1)
 
 			for _, d := range parts {
-				question.Funcs = append(question.Funcs, d[1])
+				f := d[1]
+				question.Funcs = append(question.Funcs, f)
+				if val, ok := ffunctions[f]; ok {
+					question.Docs = append(question.Docs, val)
+				} else {
+					fmt.Println("didn't find documentation for:", f)
+				}
 			}
 			question.Expr = loadCmd + "\n\n" + l
 			questions = append(questions, question)

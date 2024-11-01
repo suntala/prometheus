@@ -12,6 +12,8 @@ interface QuestionResult {
 
 export const QuestionContent: FC<QuestionContentProps> = ({ response, onQuestionChange }) => {
   if (response.data) {
+    onQuestionChange(response.data.question);
+
     return (
       <label>
         Input Value:
