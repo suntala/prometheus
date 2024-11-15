@@ -1157,7 +1157,9 @@ func (t *test) exec(tc testCommand, engine promql.QueryEngine) error {
 }
 
 func (t *test) execEval2(cmd *evalCmd, engine promql.QueryEngine) (*promql.Result, error) {
-	// #TODO handle range also
+	if cmd.isRange {
+		return t.execRangeEval2(cmd, engine)
+	}
 	return t.execInstantEval2(cmd, engine)
 }
 
@@ -1167,6 +1169,34 @@ func (t *test) execEval(cmd *evalCmd, engine promql.QueryEngine) error {
 	}
 
 	return t.execInstantEval(cmd, engine)
+}
+
+func (t *test) execRangeEval2(cmd *evalCmd, engine promql.QueryEngine) (*promql.Result, error) {
+	q, err := engine.NewRangeQuery(t.context, t.storage, nil, cmd.expr, cmd.start, cmd.end, cmd.step)
+	if err != nil {
+		return nil, fmt.Errorf("error creating range query for %q (line %d): %w", cmd.expr, cmd.line, err)
+	}
+	res := q.Exec(t.context)
+	if res.Err != nil {
+		if cmd.fail {
+			return nil, cmd.checkExpectedFailure(res.Err)
+		}
+
+		return nil, fmt.Errorf("error evaluating query %q (line %d): %w", cmd.expr, cmd.line, res.Err)
+	}
+	if res.Err == nil && cmd.fail {
+		return nil, fmt.Errorf("expected error evaluating query %q (line %d) but got none", cmd.expr, cmd.line)
+	}
+	countWarnings, _ := res.Warnings.CountWarningsAndInfo()
+	if !cmd.warn && countWarnings > 0 {
+		return nil, fmt.Errorf("unexpected warnings evaluating query %q (line %d): %v", cmd.expr, cmd.line, res.Warnings)
+	}
+	if cmd.warn && countWarnings == 0 {
+		return nil, fmt.Errorf("expected warnings evaluating query %q (line %d) but got none", cmd.expr, cmd.line)
+	}
+	defer q.Close()
+
+	return res, nil
 }
 
 func (t *test) execRangeEval(cmd *evalCmd, engine promql.QueryEngine) error {

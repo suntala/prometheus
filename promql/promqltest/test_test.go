@@ -47,6 +47,21 @@ eval instant at 50m resets(http_requests[5m])
 	require.NotNil(t, err)
 }
 
+func TestRunPromTourRange(t *testing.T) {
+	stringp := `
+load 1m
+	metric 0+1x1000
+
+eval range from 0 to 61s step 1s timestamp(metric)`
+
+	testEngine := NewTestEngine(false, 0, DefaultMaxSamplesPerQuery)
+
+	res, err := RunPromTour(&PromTourTest{}, stringp, testEngine)
+	fmt.Println(res)
+	require.Nil(t, err)
+	require.NotNil(t, err)
+}
+
 func TestPromTourPartialParse(t *testing.T) {
 	stringp := `# Testdata for resets() and changes().
 load 5m
