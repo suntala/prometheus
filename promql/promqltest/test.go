@@ -443,16 +443,66 @@ func (t *test) parse(input string) error {
 	return nil
 }
 
-// func GetPromqlFunctionName(input string) string {
-// 	return input
-// }
-
+//	func GetPromqlFunctionName(input string) string {
+//		return input
+//	}
+//
+// TODO automate the population of this map (for example with markdown parser) and allow it to be populated using hte most up-to-date documentation.
 var ffunctions = map[string]string{
+	// "1m":                 "", // something is weird with that one
 	"abs":              "`abs(v instant-vector)` returns the input vector with all sample values converted to their absolute value.",
 	"absent":           "`absent(v instant-vector)` returns an empty vector if the vector passed to it has any elements (floats or native histograms) and a 1-element vector with the value 1 if the vector passed to it has no elements.",
 	"absent_over_time": "`absent_over_time(v range-vector)` returns an empty vector if the range vector passed to it has any elements (floats or native histograms) and a 1-element vector with the value 1 if the range vector passed to it has no elements.",
+	"avg_over_time":    "`avg_over_time(range-vector)`: the average value of all points in the specified interval.",
 	"ceil":             "`ceil(v instant-vector)` rounds the sample values of all elements in `v` up to the nearest integer value greater than or equal to v.",
 	"changes":          "For each input time series, `changes(v range-vector)` returns the number of times its value has changed within the provided time range as an instant vector.",
+	"clamp":            "`clamp(v instant-vector, min scalar, max scalar)` clamps the sample values of all elements in `v` to have a lower limit of `min` and an upper limit of `max`.",
+	"clamp_max":        "`clamp_max(v instant-vector, max scalar)` clamps the sample values of all elements in `v` to have an upper limit of `max`.",
+	"clamp_min":        "`clamp_min(v instant-vector, min scalar)` clamps the sample values of all elements in `v` to have a lower limit of `min`.",
+	"count_over_time":  "`count_over_time(range-vector)`: the count of all values in the specified interval.",
+	"day_of_month":     "`day_of_month(v=vector(time()) instant-vector)` returns the day of the month for each of the given times in UTC. Returned values are from 1 to 31.",
+	"day_of_week":      "`day_of_week(v=vector(time()) instant-vector)` returns the day of the week for each of the given times in UTC. Returned values are from 0 to 6, where 0 means Sunday etc.",
+	"day_of_year":      "`day_of_year(v=vector(time()) instant-vector)` returns the day of the year for each of the given times in UTC. Returned values are from 1 to 365 for non-leap years, and 1 to 366 in leap years.",
+	"days_in_month":    "`days_in_month(v=vector(time()) instant-vector)` returns number of days in the month for each of the given times in UTC. Returned values are from 28 to 31.",
+	"delta":            "`delta(v range-vector)` calculates the difference between the first and last value of each time series element in a range vector `v`, returning an instant vector with the given deltas and equivalent labels. The delta is extrapolated to cover the full time range as specified inthe range vector selector, so that it is possible to get a non-integer result even if the sample values are all integers.",
+	"deriv":            "`deriv(v range-vector)` calculates the per-second derivative of the time series in a range vector `v`, using [simple linear regression](https://en.wikipedia.org/wiki/Simple_linear_regression). The range vector must have at least two samples in order to perform the calculation. When `+Inf` or `-Inf` are found in the range vector, the slope and offset value calculated will be `NaN`.",
+	"exp":              "`exp(v instant-vector)` calculates the exponential function for all elements in `v`.",
+	"holt_winters":     "`holt_winters(v range-vector, sf scalar, tf scalar)` produces a smoothed value for time series based on the range in `v`. The lower the smoothing factor `sf`, the more importance is given to old data. The higher the trend factor `tf`, the more trends in the data is considered. Both `sf` and `tf` must be between 0 and 1.",
+	"hour":             "`hour(v=vector(time()) instant-vector)` returns the hour of the day for each of the given times in UTC. Returned values are from 0 to 23.",
+	"idelta":           "`idelta(v range-vector)` calculates the difference between the last two samples in the range vector `v`, returning an instant vector with the given deltas and equivalent labels.",
+	"increase":         "`increase(v range-vector)` calculates the increase in the time series in the range vector. Breaks in monotonicity (such as counter resets due to target restarts) are automatically adjusted for. The increase is extrapolated to cover the full time range as specified in the range vector selector, so that it is possible to get a non-integer result even if a counter increases only by integer increments.",
+	"irate":            "`irate(v range-vector)` calculates the per-second instant rate of increase of the time series in the range vector. This is based on the last two data points. Breaks in monotonicity (such as counter resets due to target restarts) are automatically adjusted for.",
+	"label_join":       "For each timeseries in `v`, `label_join(v instant-vector, dst_label string, separator string, src_label_1 string, src_label_2 string, ...)` joins all the values of all the `src_labels` using `separator` and returns the timeseries with the label `dst_label` containing the joined value.",
+	"label_replace":    "For each timeseries in `v`, `label_replace(v instant-vector, dst_label string, replacement string, src_label string, regex string)` matches the [regular expression](https://github.com/google/re2/wiki/Syntax) `regex` against the value of the label `src_label`. If it matches, the value of the label `dst_label` in the returned timeseries will be the expansion of `replacement`, together with the original labels in the input.",
+	"last_over_time":   "`last_over_time(range-vector)`: the most recent point value in the specified interval.",
+	"ln":               "`ln(v instant-vector)` calculates the natural logarithm for all elements in `v`.",
+	"log10":            "`log10(v instant-vector)` calculates the decimal logarithm for all elements in `v`.",
+	"log2":             "`log2(v instant-vector)` calculates the binary logarithm for all elements in `v`.",
+	"mad_over_time":    "`mad_over_time(range-vector)`: the median absolute deviation of all points in the specified interval.",
+	// "max":                "", // TODO no documentation
+	"max_over_time":      "`max_over_time(range-vector)`: the maximum value of all points in the specified interval.",
+	"min_over_time":      "`min_over_time(range-vector)`: the minimum value of all points in the specified interval.",
+	"minute":             "`minute(v=vector(time()) instant-vector)` returns the minute of the hour for each of the given times in UTC. Returned values are from 0 to 59.",
+	"month":              "`month(v=vector(time()) instant-vector)` returns the month of the year for each of the given times in UTC. Returned values are from 1 to 12, where 1 means January etc.",
+	"predict_linear":     "`predict_linear(v range-vector, t scalar)` predicts the value of time series `t` seconds from now, based on the range vector `v`, using [simple linear regression](https://en.wikipedia.org/wiki/Simple_linear_regression). The range vector must have at least two samples in order to perform the  calculation. When `+Inf` or `-Inf` are found in the range vector,  the slope and offset value calculated will be `NaN`.",
+	"present_over_time":  "`present_over_time(range-vector)`: the value 1 for any series in the specified interval.",
+	"quantile_over_time": "`quantile_over_time(scalar, range-vector)`: the φ-quantile (0 ≤ φ ≤ 1) of the values in the specified interval.",
+	"rate":               "`rate(v range-vector)` calculates the per-second average rate of increase of the time series in the range vector. Breaks in monotonicity (such as counter resets due to target restarts) are automatically adjusted for. Also, the calculation extrapolates to the ends of the time range, allowing for missed scrapes or imperfect alignment of scrape cycles with the range's time period.",
+	"resets":             "For each input time series, `resets(v range-vector)` returns the number of counter resets within the provided time range as an instant vector. Any decrease in the value between two consecutive float samples is interpreted as a counter reset. A reset in a native histogram is detected in a more complex way: Any decrease in any bucket, including the zero bucket, or in the count of observation constitutes a counter reset, but also the disappearance of any previously populated bucket, an increase in bucket resolution, or a decrease of the zero-bucket width.",
+	"sgn":                "`sgn(v instant-vector)` returns a vector with all sample values converted to their sign, defined as this: 1 if v is positive, -1 if v is negative and 0 if v is equal to zero.",
+	"sort":               "`sort(v instant-vector)` returns vector elements sorted by their sample values, in ascending order. Native histograms are sorted by their sum of observations.",
+	"sort_by_label":      "`sort_by_label(v instant-vector, label string, ...)` returns vector elements sorted by their label values and sample value in case of label values being equal, in ascending order.",
+	"sort_by_label_desc": "Same as `sort_by_label`, but sorts in descending order.",
+	"sort_desc":          "Same as `sort`, but sorts in descending order.",
+	"sqrt":               "`sqrt(v instant-vector)` calculates the square root of all elements in `v`.",
+	"stddev_over_time":   "`stddev_over_time(range-vector)`: the population standard deviation of the values in the specified interval.",
+	"stdvar_over_time":   "`stdvar_over_time(range-vector)`: the population standard variance of the values in the specified interval.",
+	// "sum":                "", // TODO
+	"sum_over_time": "`sum_over_time(range-vector)`: the sum of all values in the specified interval.",
+	"time":          "`time()` returns the number of seconds since January 1, 1970 UTC. Note that this does not actually return the current time, but the time at which the expression is to be evaluated.",
+	"timestamp":     "`timestamp(v instant-vector)` returns the timestamp of each of the samples ofthe given vector as the number of seconds since January 1, 1970 UTC. It also works with histogram samples.",
+	"vector":        "`vector(s scalar)` returns the scalar `s` as a vector with no labels.",
+	"year":          "`year(v=vector(time()) instant-vector)` returns the year for each of the given times in UTC.",
 }
 
 type Question struct {
