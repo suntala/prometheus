@@ -29,7 +29,9 @@ function ControlledComponent() {
   // replace string here with test file input
   const [inputValue, setInputValue] = useState('');
   const [outputValue, setOutputValue] = useState('');
-  const onQuestionChange = (value: any) => setInputValue(value);
+  const onQuestionChange = function (value: any) {
+    return setInputValue(value);
+  };
   // const pathPrefix = usePathPrefix();
   // TODO figure out how to get usePathPrefix to work or change it ==> useFetch<string[]>(`${pathPrefix}/${API_PATH}/
   // const { response: fetchRes, error: fetchErr } = useFetch<{ question: string }>(
